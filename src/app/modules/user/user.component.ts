@@ -1,5 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { User } from 'src/app/models/user';
+import * as UserActions from '../../actions/user.actions';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-user',
@@ -8,13 +12,20 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 })
 export class UserComponent implements OnInit {
 
+  data$: Observable<User[]> = this.store.select(state => state.users);
   userForm: FormGroup;
   constructor(
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private store: Store<{ users: User[] }>
   ) { }
 
   ngOnInit() {
     this.userForm = this.createForm();
+    this.getUsers();
+  }
+
+  getUsers(): void {
+    this.store.dispatch(UserActions.GetAll());
   }
 
   createForm(): FormGroup {
@@ -25,7 +36,15 @@ export class UserComponent implements OnInit {
   }
 
   ngSubmit(form: any): void {
-    console.log(form.value);
+    if (!form.valid) {
+      return;
+    }
+    const user = Object.assign(new User(), form.value);
+    this.save(user);
+  }
+
+  save(user: User): void {
+    this.store.dispatch(UserActions.Save(user));
   }
 
   edit(): void {
@@ -33,7 +52,7 @@ export class UserComponent implements OnInit {
   }
 
   delete(): void {
-    
+    this.store.dispatch(UserActions.GetAll());
   }
 
 }
